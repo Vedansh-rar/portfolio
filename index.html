@@ -841,7 +841,13 @@ specimen(document.getElementById('hi'));
 (function(){
   const root=document.documentElement, loader=document.getElementById('loader');
   const startHero=()=>{specimen(document.getElementById('name'));document.querySelectorAll('.hero .rv').forEach(el=>el.classList.add('in'))};
+  if(root.classList.contains('loading')&&document.visibilityState==='hidden'){root.classList.remove('loading')}
   if(!root.classList.contains('loading')){loader.classList.add('gone');startHero();return}
+  let done=false;
+  const finish=()=>{ if(done) return; done=true;
+    loader.classList.add('out');root.classList.remove('loading');try{sessionStorage.setItem('seen','1')}catch(e){};
+    setTimeout(startHero,250);setTimeout(()=>loader.classList.add('gone'),1100) };
+  setTimeout(finish,5000); // failsafe: never trap the page behind the loader, even if animation frames are paused
   const bars=[...document.querySelectorAll('#ldBar i')], weights=bars.map(b=>parseFloat(b.style.getPropertyValue('--w')));
   const total=weights.reduce((a,b)=>a+b), pct=document.getElementById('ldPct'), tcEl=document.getElementById('ldTc');
   const mark=[...document.querySelectorAll('#ldMark span')].slice(0,2);
@@ -854,9 +860,10 @@ specimen(document.getElementById('hi'));
     pct.textContent=Math.round(shown*100)+'%';
     const f=Math.round(shown*150*25),p=n=>String(n).padStart(2,'0');tcEl.textContent=`00:${p(Math.floor(f/1500))}:${p(Math.floor(f/25)%60)}:${p(f%25)}`;
     if(Math.random()<.18) mark[Math.floor(Math.random()*2)].className='f'+Math.floor(Math.random()*5);
+    if(done) return;
     if(shown<1||el<MIN) return requestAnimationFrame(tick);
     mark[0].className='f1';mark[1].className='f0';pct.textContent='100% · ▶ play';
-    setTimeout(()=>{loader.classList.add('out');root.classList.remove('loading');try{sessionStorage.setItem('seen','1')}catch(e){};setTimeout(startHero,250);setTimeout(()=>loader.classList.add('gone'),1100)},380);
+    setTimeout(finish,380);
   })(t0);
 })();
 
